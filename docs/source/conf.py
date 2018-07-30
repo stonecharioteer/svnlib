@@ -26,7 +26,7 @@ author = 'Vinay Keerthi'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.1dev'
+release = '0.1a'
 
 
 # -- General configuration ---------------------------------------------------
