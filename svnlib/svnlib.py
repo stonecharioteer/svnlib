@@ -48,7 +48,7 @@ def check_credentials(username, password):
     """Checks the svn credentials and returns an SVNErrorParser object."""
     _, query_errors = list_folder(
         "svn://{}/XT4210/".format(os.environ("SVN_SERVER", get_hostname()),
-        username, password)
+        username, password))
     return query_errors
 
 def check_authorization(url, username, password):
