@@ -10,6 +10,7 @@ from the pysvn library in that it can operate on remote repositories without
 checking them out.
 
 """
+__name__ = "svnlib"
 from .internals import check_for_svn
 try:
     check_for_svn()
