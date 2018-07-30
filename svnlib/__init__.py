@@ -26,4 +26,5 @@ from .svnlib import (
             checkout, export,
             create_repository, commit,
             check_if_folder_exists,
-            create_folder, clone_template_folders)
+            create_folder, clone_template_folders,
+            delete_folder, get_templates_folder)

@@ -111,7 +111,14 @@ class SVNErrorParser:
                         self.user_has_auth = True
                         self.username_is_valid = True
                         self.password_is_valid = True
-                        self.subfolder_exists = False
+                        self.item_exists = False
+                    elif "some targets don't exist" in error.lower():
+                        self.hostname_is_valid = True
+                        self.repo_exists = True
+                        self.user_has_auth = True
+                        self.username_is_valid = True
+                        self.password_is_valid = True
+                        self.item_exists = False
                     else:
                         raise SVNException(error)
         else:
