@@ -14,6 +14,23 @@ def get_hostname():
             "environment variable."))
     return "10.133.0.222"
 
+def check_credentials(username, password):
+    """Checks the svn credentials and returns an SVNErrorParser object."""
+    _, query_errors = list_folder(
+                "svn://{}/XT4210/".format(
+                        os.environ.get("SVN_SERVER", get_hostname())),
+                username, password)
+    return query_errors
+
+def check_authorization(url, username, password):
+    """Checks if the given user has access to a repository,
+    using the list function.
+
+    Returns the query errors."""
+    _, query_errors = list_folder(
+        url, username, password)
+    return query_errors
+
 def list_folder(url, username, password, depth=None):
     """Lists all folders inside an SVN repository URL.
 
@@ -31,37 +48,19 @@ def list_folder(url, username, password, depth=None):
             username, "--password",
             password, "--non-interactive",
             "--no-auth-cache"
-        ]
+            ]
     if depth is not None:
-        args = args.extend(["--depth", depth])
-    
+        args.extend(["--depth", depth])
+
     query_process = subprocess.Popen(args, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+                                    stderr=subprocess.PIPE)
     out, err = query_process.communicate()
 
-    out = out.decode("utf-8").split("\n")
-    err = err.decode("utf-8").strip()
+    out = out.decode("utf-8").split("\r\n")
     errors = SVNErrorParser(err)
     return out, errors
 
-def check_credentials(username, password):
-    """Checks the svn credentials and returns an SVNErrorParser object."""
-    _, query_errors = list_folder(
-                "svn://{}/XT4210/".format(
-                        os.environ("SVN_SERVER", get_hostname())),
-                username, password)
-    return query_errors
-
-def check_authorization(url, username, password):
-    """Checks if the given user has access to a repository,
-    using the list function.
-
-    Returns the query errors."""
-    _, query_errors = list_folder(
-        url, username, password)
-    return query_errors
-
-def checkout(url, folder, username, password, options=None):
+def checkout(url, folder, username, password, **kwargs):
     """Checkout an svn repository to a folder path using the user's credentials.
 
     Arguments:
@@ -71,7 +70,7 @@ def checkout(url, folder, username, password, options=None):
         password {str} -- password
 
     Keyword Arguments:
-        options {[type]} -- [description] (default: {None})
+        kwargs {[type]} -- [description] (default: {None})
 
     Returns:
         SVNErrorParser -- errors, if any, from the process.
@@ -81,6 +80,10 @@ def checkout(url, folder, username, password, options=None):
     args = ["svn", "checkout", url, "--username",
             username, "--password",
             password, "--non-interactive", "--no-auth-cache"]
+    # apply kwargs
+    for key in kwargs:
+        args.extend(["--{}".format(key), str(kwargs[key])])
+    
     process = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
     try:
@@ -132,9 +135,11 @@ def create_repository(repository_name, username, password, svn_hostname, svn_hos
 
     COMMAND: cp -r /data/_repositories/_base_Repository_Template/ /data/_repositories/{0}; svnadmin setuuid /data/_repositories/{0}
 
-    NOTE: Although this script creates the repositories, note that access to the repositories is administered via the script in
+    NOTE: Although this script creates the repositories, 
+    note that access to the repositories is administered via the script in
     svn://dllohsr222/XT4210/apps/get_svn_users_groups/get_users_groups.py
-    Only users in the Production Redmine session who are added as members in a related project have access.
+    Only users in the Production Redmine session who are added as 
+    members in a related project have access.
     """
     # first check if this exists.
     query = check_authorization(
@@ -209,7 +214,7 @@ def create_folder(link, user, password):
 
 def get_templates_folder():
     """Returns the link to the current FolderTemplates container in the XT4210 repository."""
-    return "svn://{}/XT4210/apps/FolderTemplates/current".format(os.environ("SVN_SERVER", get_hostname()))
+    return "svn://{}/XT4210/apps/FolderTemplates/current".format(os.environ.get("SVN_SERVER", get_hostname()))
 
 def clone_template_folders(link, template, user, password):
     """

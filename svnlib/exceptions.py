@@ -1,0 +1,3 @@
+
+class SVNException(Exception):
+    pass

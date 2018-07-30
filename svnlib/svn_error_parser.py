@@ -1,3 +1,4 @@
+from .exceptions import SVNException
 
 class SVNErrorParser:
     """Class to manage the errors from svn.
@@ -13,7 +14,7 @@ class SVNErrorParser:
             if err_list == "":
                 err_list = []
             else:
-                err_list = err_list.split("\n")
+                err_list = err_list.split("\r\n")
         
         self.parse_errors(err_list)
 
@@ -71,6 +72,7 @@ class SVNErrorParser:
         self.password_is_valid = None
         self.repo_exists = None
         self.user_has_auth = None
+        self.item_exists = None
         if isinstance(err, list):
             if len(err) == 0:
                 self.hostname_is_valid = True
@@ -78,73 +80,39 @@ class SVNErrorParser:
                 self.password_is_valid = True
                 self.repo_exists = True
                 self.user_has_auth = True
+                self.item_exists = True
             else:
-                if "unable to connect to a repository" in err[0].lower():
-                    if len(err) > 1:
-                        if "password incorrect" in err[1].lower():
-                            self.username_is_valid = True
-                            self.password_is_valid = False
-                            self.repo_exists = True
-                            self.hostname_is_valid = True
-                        elif "username not found" in err[1].lower():
-                            self.username_is_valid = False
-                            self.repo_exists = True
-                            self.hostname_is_valid = True
-                        elif "no repository found" in err[1].lower():
-                            self.repo_exists = False
-                            self.hostname_is_valid = True
-                            self.username_is_valid = True
-                            self.password_is_valid = True
-                        elif "unknown hostname" in err[1].lower():
-                            self.hostname_is_valid = False
-                            notify = True
-                        else:
-                            raise Exception(str(err))
+                for error in err:
+                    if "unable to connect to a repository" in error.lower():
+                        self.repo_exists = False
+                    elif "unknown hostname" in error.lower():
+                        self.hostname_is_valid = False
+                    elif "no repository found" in error.lower():
+                        self.hostname_is_valid = True
+                        self.repo_exists = False
+                    elif "username not found" in error.lower():
+                        self.hostname_is_valid = True
+                        self.repo_exists=True
+                        self.username_is_valid = False
+                    elif "password incorrect" in error.lower():
+                        self.hostname_is_valid = True
+                        self.repo_exists = True
+                        self.username_is_valid = True
+                        self.password_is_valid = False
+                    elif "authorization failed" in error.lower():
+                        self.hostname_is_valid = True
+                        self.repo_exists = True
+                        self.username_is_valid = True
+                        self.password_is_valid = True
+                        self.user_has_auth = False
+                    elif "non-existent in revision" in error.lower():
+                        self.hostname_is_valid = True
+                        self.repo_exists = True
+                        self.user_has_auth = True
+                        self.username_is_valid = True
+                        self.password_is_valid = True
+                        self.subfolder_exists = False
                     else:
-                        raise Exception(str(err))
-                elif "authorization failed" in err[0].lower():
-                    self.hostname_is_valid = True
-                    self.username_is_valid = True
-                    self.password_is_valid = True
-                    self.repo_exists = True
-                    self.user_has_auth = False
-                elif "non-existent in revision" in err[0].lower():
-                    self.hostname_is_valid = True
-                    self.username_is_valid = True
-                    self.password_is_valid = True
-                    self.repo_exists = False
-                    self.user_has_auth = None
-                elif ("error resolving case of" in err[0].lower()) \
-                    or ("error resolving case of" in err[1].lower()):
-                    self.hostname_is_valid = None
-                    self.username_is_valid = None
-                    self.password_is_valid = None
-                    self.repo_exists = None
-                    self.user_has_auth = None
-                else:
-                    raise Exception(str(err))
-        elif isinstance(err, str) or isinstance(err, bytes):
-            if isinstance(err, bytes):
-                err = err.decode("utf-8")
-            if "error resolving case of" in err.lower():
-                self.hostname_is_valid = None
-                self.username_is_valid = None
-                self.password_is_valid = None
-                self.repo_exists = None
-                self.user_has_auth = None
-            elif err.strip() == "":
-                self.hostname_is_valid = True
-                self.username_is_valid = True
-                self.password_is_valid = True
-                self.repo_exists = True
-                self.user_has_auth = True
-            else:
-                raise Exception(err)
-        elif err is None:
-            self.hostname_is_valid = True
-            self.username_is_valid = True
-            self.password_is_valid = True
-            self.repo_exists = True
-            self.user_has_auth = True
+                        raise SVNException(error)
         else:
-            raise Exception(str(err))
+            raise SVNException(str(err))
