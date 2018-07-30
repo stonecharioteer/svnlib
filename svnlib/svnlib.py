@@ -47,8 +47,9 @@ def list_folder(url, username, password, depth=None):
 def check_credentials(username, password):
     """Checks the svn credentials and returns an SVNErrorParser object."""
     _, query_errors = list_folder(
-        "svn://{}/XT4210/".format(os.environ("SVN_SERVER", get_hostname()),
-        username, password))
+                "svn://{}/XT4210/".format(
+                        os.environ("SVN_SERVER", get_hostname())),
+                username, password)
     return query_errors
 
 def check_authorization(url, username, password):
@@ -220,7 +221,7 @@ def clone_template_folders(link, template, user, password):
     subfolders=list_folder(required_template_folder,
                             svn_user, svn_password, depth="infinity")
     
-    subfolders = [folder.replace(required_template_folder, link) \ 
+    subfolders = [folder.replace(required_template_folder, link) 
                 for folder in subfolders if (os.path.splitext(folder)[1] == "")]
     for folder in subfolders:
         if not check_if_folder_exists(folder, user, password):
