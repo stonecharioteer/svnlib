@@ -51,6 +51,22 @@ def test_list():
     assert isinstance(out, list) == True
     assert isinstance(err, svnlib.SVNErrorParser) == True
 
+def test_behaviour():
+    """This tests the attributes for expected behaviour
+    under specific situations.
+    This behaviour plays an important role in the usage of this
+    module.
+    """
+    # Check if user has auth to a repository,
+    # when querying for a folder that doesn't exist.
+    test_url = "svn://{}/xyz/{}".format(SVN_SERVER, uuid.uuid4())
+    err = svnlib.check_authorization(test_url, TEST_USER, TEST_PASSWORD)
+    assert err.hostname_is_valid == True, "The hostname should be valid!"
+    assert err.repo_exists == True, "The repo should exist."
+    assert err.item_exists == False, "The subfolder in the repo should not exist."
+
+    # Check hostname_is_valid
+
 def test_checkout():
     temp_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),"tmp", str(uuid.uuid4()))
     if os.path.exists(temp_dir):
@@ -109,6 +125,7 @@ def test_export():
     except:
         raise
 
+
 def test_creation():
     test_folder = "test_{}".format(uuid.uuid4())
     test_url = "svn://{}/xyz/{}".format(SVN_SERVER, test_folder)
@@ -139,7 +156,7 @@ def test_creation():
                                 TEST_USER,
                                 TEST_PASSWORD,
                                 commit_message=commit_message)
-    
+
     for template_folder in template_folders:
         cloned_folder_url = "{}/{}".format(test_url, template_folder)
         assert svnlib.check_if_folder_exists(
