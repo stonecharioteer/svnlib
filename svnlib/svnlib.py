@@ -4,6 +4,7 @@ import subprocess
 import os
 
 from .svn_error_parser import SVNErrorParser
+from . import exceptions
 
 def get_hostname():
     """Returns the usual hostname at GKN DL."""
@@ -82,7 +83,7 @@ def checkout(url, folder, username, password, **kwargs):
     # apply kwargs
     for key in kwargs:
         args.extend(["--{}".format(key), str(kwargs[key])])
-    
+
     process = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
     try:
@@ -132,19 +133,19 @@ def get_cred():
     warnings.warn("Do not call this function, it is a security concern!")
     return {"username" : "svnuser", "password" : "svnuser"}
 
-def create_repository(repository_name, 
-                    username, password, 
-                    svn_hostname, svn_host_user, 
+def create_repository(repository_name,
+                    username, password,
+                    svn_hostname, svn_host_user,
                     svn_host_user_password):
     """Function to create a repository
     TODO: Find out how to store the SVN host name and passwords.
 
     COMMAND: cp -r /data/_repositories/_base_Repository_Template/ /data/_repositories/{0}; svnadmin setuuid /data/_repositories/{0}
 
-    NOTE: Although this script creates the repositories, 
+    NOTE: Although this script creates the repositories,
     note that access to the repositories is administered via the script in
     svn://dllohsr222/XT4210/apps/get_svn_users_groups/get_users_groups.py
-    Only users in the Production Redmine session who are added as 
+    Only users in the Production Redmine session who are added as
     members in a related project have access.
     """
     # first check if this exists.
@@ -210,7 +211,7 @@ def check_if_folder_exists(link, user, password):
     errs = SVNErrorParser(err)
     return (errs.item_exists == True)
 
-def create_folder(link, user, password, commit_message=None):
+def create_folder(link, user, password, commit_message=None, validate=False):
     """Creates an SVN folder."""
     if commit_message is None:
         commit_message = "Creating {}".format(link)
@@ -219,6 +220,9 @@ def create_folder(link, user, password, commit_message=None):
             link, "--non-interactive", "--no-auth-cache"]
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process.communicate()
+    if validate:
+        if not check_if_folder_exists(link, user, password):
+            raise exceptions.SVNFolderCreationError("Failed creating {}.".format(link))
     return out.decode("ascii").strip(), SVNErrorParser(err)
 
 def delete_folder(link, user, password, commit_message=None):
@@ -237,7 +241,7 @@ def get_templates_folder():
     """Returns the link to the current FolderTemplates container in the XT4210 repository."""
     return "svn://{}/XT4210/apps/FolderTemplates/current".format(os.environ.get("SVN_SERVER", get_hostname()))
 
-def clone_template_folders(link, template, user, password, commit_message=None):
+def clone_template_folders(link, template, user, password, commit_message=None, validate=False):
     """
     Creates the template folders as found in the corresponding template folder.
     TODO: Figure out what to do when there is a `loop` analysis run.
@@ -246,10 +250,11 @@ def clone_template_folders(link, template, user, password, commit_message=None):
     required_template_folder = "{}/{}".format(get_templates_folder(), template)
     subfolders, err=list_folder(required_template_folder,
                             user, password, depth="infinity")
-    
+
     subfolders = ["{}/{}".format(link, folder)
                 for folder in subfolders if (os.path.splitext(folder)[1] == "")]
     for folder in subfolders:
         if not check_if_folder_exists(folder, user, password):
             create_folder(folder, user, password,
-                        commit_message=commit_message)
+                        commit_message=commit_message, validate=validate)
+
