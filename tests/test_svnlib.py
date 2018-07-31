@@ -4,7 +4,7 @@ import sys
 import uuid
 import warnings
 TEST_USER = TEST_PASSWORD = "svnuser"
-
+TEST_TEMPLATE = "workorder_FEA"
 SVN_SERVER="dllohsr222.driveline.gkn.com"
 os.environ["SVN_SERVER"] = SVN_SERVER
 import svnlib
@@ -138,7 +138,7 @@ def test_creation():
         test_url, TEST_USER, TEST_PASSWORD) == True
 
     # test creation of template folders.
-    template = "workorder_CAE"
+    template = TEST_TEMPLATE
     template_url = "{}/{}".format(svnlib.get_templates_folder(), template)
     assert svnlib.check_if_folder_exists(
         template_url, TEST_USER, TEST_PASSWORD) == True
