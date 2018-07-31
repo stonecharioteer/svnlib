@@ -250,6 +250,11 @@ def clone_template_folders(link, template, user, password, commit_message=None, 
     required_template_folder = "{}/{}".format(get_templates_folder(), template)
     subfolders, err=list_folder(required_template_folder,
                             user, password, depth="infinity")
+    if not err.user_has_auth:
+        raise PermissionError(("User does not have access "
+                    "to the templates folder {} "
+                    "in the repository!").format(
+                        required_template_folder))
 
     subfolders = ["{}/{}".format(link, folder)
                 for folder in subfolders if (os.path.splitext(folder)[1] == "")]

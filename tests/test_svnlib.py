@@ -147,6 +147,7 @@ def test_creation():
                                         TEST_USER,
                                         TEST_PASSWORD,
                                         depth="infinity")
+    assert err.user_has_auth == True # the template folder is in another repository.
     assert len(template_folders) > 0
     assert isinstance(template_folders[0], str) == True
     template_folders = [f for f in template_folders if os.path.splitext(f)[1] == ""]
