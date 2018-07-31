@@ -238,7 +238,8 @@ def delete_folder(link, user, password, commit_message=None):
     return out.decode("ascii").strip(), SVNErrorParser(err)
 
 def get_templates_folder():
-    """Returns the link to the current FolderTemplates container in the XT4210 repository."""
+    """Returns the link to the current FolderTemplates
+    container in the XT4210 repository."""
     return "svn://{}/XT4210/apps/FolderTemplates/current".format(os.environ.get("SVN_SERVER", get_hostname()))
 
 def clone_template_folders(link, template, user, password, commit_message=None, validate=False):
@@ -263,3 +264,19 @@ def clone_template_folders(link, template, user, password, commit_message=None, 
             create_folder(folder, user, password,
                         commit_message=commit_message, validate=validate)
 
+def move_folder(link, new_link, user, password, commit_message=None, validate=False):
+    """
+    Moves a folder in an svn repository to another folder in the same repo.
+    """
+    if commit_message is None:
+        commit_message = "Moving {} to {}".format(link, new_link)
+
+    args = [
+        "svn","move","-m", commit_message,
+        link, new_link,
+        "--username", user, "--password", password,
+        "--no-auth-cache","--non-interactive"
+    ]
+    process = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    out, err = process.communicate()
+    return out.decode("ascii").strip(), SVNErrorParser(err)

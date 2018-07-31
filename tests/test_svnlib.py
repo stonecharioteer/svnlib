@@ -168,3 +168,29 @@ def test_creation():
                                 commit_message="Deleting folder for automated test.")
     assert svnlib.check_if_folder_exists(
         test_url, TEST_USER, TEST_PASSWORD) == False
+
+def test_move():
+    test_folder = "test_{}".format(uuid.uuid4())
+    test_url = "svn://{}/xyz/{}".format(SVN_SERVER, test_folder)
+    assert svnlib.check_if_folder_exists(
+        test_url, TEST_USER, TEST_PASSWORD) == False
+
+    out, err = svnlib.create_folder(test_url,
+                                    TEST_USER, TEST_PASSWORD,
+                                    commit_message="Creating folder for automated test.")
+    assert svnlib.check_if_folder_exists(
+        test_url, TEST_USER, TEST_PASSWORD) == True
+    new_test_folder = "test_{}".format(uuid.uuid4())
+    new_test_url = "svn://{}/xyz/{}".format(SVN_SERVER, new_test_folder)
+    out, err = svnlib.move_folder(
+        test_url, new_test_url, TEST_USER, TEST_PASSWORD, commit_message="moving folder for automated test.")
+    assert svnlib.check_if_folder_exists(
+        test_url, TEST_USER, TEST_PASSWORD) == False
+    assert svnlib.check_if_folder_exists(
+        new_test_url, TEST_USER, TEST_PASSWORD) == True
+    out, err = svnlib.delete_folder(new_test_url,
+                        TEST_USER, TEST_PASSWORD,
+                        commit_message="Deleting folder for automated test.")
+    assert svnlib.check_if_folder_exists(
+        new_test_url, TEST_USER, TEST_PASSWORD) == False
+

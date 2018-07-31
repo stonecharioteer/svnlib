@@ -32,6 +32,7 @@ from .svnlib import (
             create_folder,
             clone_template_folders,
             delete_folder,
+            move_folder,
             create_repository,
             get_templates_folder # meta.
             )
