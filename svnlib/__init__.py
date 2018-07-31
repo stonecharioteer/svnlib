@@ -21,10 +21,17 @@ else:
 
 from .svn_error_parser import SVNErrorParser
 from .svnlib import (
-            get_hostname, list_folder,
-            check_credentials, check_authorization,
-            checkout, export,
-            create_repository, commit,
+            get_hostname,
+            list_folder,
+            check_credentials,
+            check_authorization,
+            checkout,
+            export,
+            commit,
             check_if_folder_exists,
-            create_folder, clone_template_folders,
-            delete_folder, get_templates_folder)
+            create_folder,
+            clone_template_folders,
+            delete_folder,
+            create_repository,
+            get_templates_folder # meta.
+            )
