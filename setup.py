@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="svnlib",
-    version="0.1.2a",
+    version="0.1.3a",
     author="Vinay Keerthi",
     author_email="ktvkvinaykeerthi@gmail.com",
     long_description=long_description,
