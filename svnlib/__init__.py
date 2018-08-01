@@ -22,6 +22,7 @@ else:
 from .svn_error_parser import SVNErrorParser
 from .svnlib import (
             get_hostname,
+            get_info,
             list_folder,
             check_credentials,
             check_authorization,

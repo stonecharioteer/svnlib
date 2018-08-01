@@ -32,6 +32,27 @@ def check_authorization(url, username, password):
         url, username, password)
     return query_errors
 
+def get_info(url, username, password):
+    """Returns the svn info for a repository."""
+    args = [
+            "svn", "info", url,
+            "--username", username, 
+            "--password", password,
+            "--no-auth-cache", "--non-interactive"
+            ]
+    process = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    out, err = process.communicate()
+    out = out.decode("ascii").split("\r\n")
+    err = SVNErrorParser(err)
+    info_dict = {}
+    if err.item_exists:
+        for line in out:
+            if line.strip() != "":
+                key = line[:line.find(":")].strip()
+                value = line[line.find(":")+1:].strip()
+                info_dict[key] = value
+    return info_dict, err
+
 def list_folder(url, username, password, **kwargs):
     """Lists all folders inside an SVN repository URL.
 
@@ -55,7 +76,6 @@ def list_folder(url, username, password, **kwargs):
     query_process = subprocess.Popen(args, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
     out, err = query_process.communicate()
-
     out = out.decode("utf-8").split("\r\n")
     errors = SVNErrorParser(err)
     return out, errors
@@ -280,3 +300,4 @@ def move_folder(link, new_link, user, password, commit_message=None, validate=Fa
     process = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     out, err = process.communicate()
     return out.decode("ascii").strip(), SVNErrorParser(err)
+

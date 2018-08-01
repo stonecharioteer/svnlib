@@ -40,11 +40,32 @@ def test_connection():
 
 def test_auth():
     err = svnlib.check_authorization("svn://{}/xyz/".format(SVN_SERVER), TEST_USER, TEST_PASSWORD)
-    assert err.user_has_auth == True
-
+    assert err.repo_exists == True
     err = svnlib.check_authorization(
         "svn://{}/jenkins/".format(SVN_SERVER), TEST_USER, TEST_PASSWORD)
     assert err.user_has_auth == False
+
+def test_info():
+    info, err = svnlib.get_info("svn://{}/xyz".format(SVN_SERVER), TEST_USER, TEST_PASSWORD)
+    expected_keys = [
+        "URL","Relative URL", "Path",
+        "Repository Root","Repository UUID",
+        "Revision","Node Kind","Last Changed Author",
+        "Last Changed Rev","Last Changed Date"
+        ]
+    assert err.user_has_auth == True
+    assert err.repo_exists == True
+    assert err.item_exists == True
+
+    for key in expected_keys:
+        assert key in info.keys()
+    for key in info.keys():
+        assert key in expected_keys
+    info, err = svnlib.get_info(
+        "svn://{}/xyz/{}".format(SVN_SERVER, uuid.uuid4()), TEST_USER, TEST_PASSWORD)
+    assert len(info.keys()) == 0
+    assert err.item_exists == False
+    assert err.repo_exists == True
 
 def test_list():
     out, err = svnlib.list_folder("svn://{}/xyz/".format(SVN_SERVER), TEST_USER, TEST_PASSWORD)
