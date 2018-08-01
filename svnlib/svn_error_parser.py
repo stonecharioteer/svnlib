@@ -15,7 +15,7 @@ class SVNErrorParser:
                 err_list = []
             else:
                 err_list = err_list.split("\r\n")
-        
+        err_list = [r for r in err_list if r.strip() == ""]
         self.parse_errors(err_list)
 
     def __repr__(self):
