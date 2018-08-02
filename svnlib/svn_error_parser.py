@@ -1,22 +1,28 @@
 from .exceptions import SVNException
-
+import sys
 class SVNErrorParser:
     """Class to manage the errors from svn.
     """
-    def __init__(self, err_list):
+    def __init__(self, errs):
         """Intialization
 
         Arguments:
-            err_list {list} -- Second output from `subprocess.Popen().communicate()`, the errors.
+            errs {bytes} -- Second output from 
+                            `subprocess.Popen().communicate()`,
+                            the errors.
         """
-        if isinstance(err_list, bytes):
-            err_list = err_list.decode("ascii").strip()
-            if err_list == "":
-                err_list = []
-            else:
+        if not isinstance(errs, bytes):
+            raise ValueError("Expected bytes, not {}".format(type(errs)))
+        err_list = errs.decode("ascii").strip()
+        if err_list == "":
+            err_list = []
+        else:
+            if "\r\n" in err_list:
                 err_list = err_list.split("\r\n")
-        err_list = [r for r in err_list if r.strip() == ""]
-        self.parse_errors(err_list)
+            else:
+                err_list = err_list.split("\n")
+        errors = [r for r in err_list if r.strip() != ""]
+        self.parse_errors(errors)
 
     def __repr__(self):
         """Representation method.
@@ -120,6 +126,7 @@ class SVNErrorParser:
                         self.password_is_valid = True
                         self.item_exists = False
                     else:
+                        sys.stderr.write(",".join(err))
                         raise SVNException(error)
         else:
             raise SVNException(str(err))
