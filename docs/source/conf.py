@@ -26,7 +26,7 @@ author = 'Vinay Keerthi'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.1.3a'
+release = '0.1.4a'
 
 
 # -- General configuration ---------------------------------------------------
@@ -138,7 +138,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'SubversionLibraryforPython.tex', 'Subversion Library for Python Documentation',
-     'Vinay Keerthi', 'manual'),
+    'Vinay Keerthi', 'manual'),
 ]
 
 
@@ -148,7 +148,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc, 'subversionlibraryforpython', 'Subversion Library for Python Documentation',
-     [author], 1)
+    [author], 1)
 ]
 
 
