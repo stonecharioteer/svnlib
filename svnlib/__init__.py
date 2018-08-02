@@ -29,11 +29,12 @@ from .svnlib import (
             checkout,
             export,
             commit,
-            check_if_folder_exists,
+            item_exists,
             create_folder,
             clone_template_folders,
             delete_folder,
             move_folder,
+            import_item,
             create_repository,
             get_templates_folder # meta.
             )

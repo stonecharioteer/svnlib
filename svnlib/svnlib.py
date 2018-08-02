@@ -28,19 +28,21 @@ def check_authorization(url, username, password):
     using the list function.
 
     Returns the query errors."""
-    _, query_errors = list_folder(
-        url, username, password)
+    _, query_errors = list_folder(url, username, password)
     return query_errors
 
 def get_info(url, username, password):
     """Returns the svn info for a repository."""
     args = [
             "svn", "info", url,
-            "--username", username, 
+            "--username", username,
             "--password", password,
             "--no-auth-cache", "--non-interactive"
             ]
-    process = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    process = subprocess.Popen(
+                        args,
+                        stderr=subprocess.PIPE,
+                        stdout=subprocess.PIPE)
     out, err = process.communicate()
     out = out.decode("ascii").split("\r\n")
     err = SVNErrorParser(err)
@@ -106,14 +108,9 @@ def checkout(url, folder, username, password, **kwargs):
 
     process = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
-    try:
-        out, err = process.communicate()
-    except:
-        os.chdir(start_dir)
-        raise
-    else:
-        os.chdir(start_dir)
-        return SVNErrorParser(err)
+    out, err = process.communicate()
+    os.chdir(start_dir)
+    return os.path.join(folder, os.path.basename(url))
 
 def export(url, folder, username, password, **kwargs):
     """Export an svn repository to a folder path using the user's credentials.
@@ -139,14 +136,50 @@ def export(url, folder, username, password, **kwargs):
         args.extend(["--{}".format(key),str(kwargs[key])])
     process = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
-    try:
-        out, err = process.communicate()
-    except:
-        os.chdir(start_dir)
-        raise
-    else:
-        os.chdir(start_dir)
-        return SVNErrorParser(err)
+    out, err = process.communicate()
+    os.chdir(start_dir)
+    return os.path.join(folder, os.path.basename(url))
+
+def import_item(url,
+        item_path, username, 
+        password, commit_message=None, **kwargs):
+    """
+    helper function for `svn import`
+    NOTE: This function fixes an odd caveat of `svn import`. Note that 
+    this *could* be something I'm not aware of.
+    Example: If you want to import a folder into a repository path, 
+    `svn import` just imports the contents of that folder into 
+    the location, and it doesn't bother creating said folder. 
+    This is odd to me, at least, and seems very counter-intuitive.
+    Hence the check to see if the given path is a folder and not a file.
+    """
+    if not os.path.exists(item_path):
+        raise FileNotFoundError("{} is not a valid path".format(item_path))
+    if commit_message is None:
+        commit_message = "importing {}".format(item_path)
+    if os.path.isdir(item_path):
+        # if the folder doesn't exist on the repository,
+        # make it and import the files into that location.
+        folder_name = os.path.basename(item_path)
+        url = "{}/{}".format(url, folder_name)
+        if not item_exists(url, username, password):
+            create_folder(
+                        url, username, password,
+                        commit_message=(
+                            "Creating {} folder for "
+                            "importing {} via svnlib."
+                            ).format(folder_name, "folder_path"))
+    args = ["svn", "import", "-m", commit_message,
+            item_path, url, "--username",
+            username, "--password",
+            password, "--non-interactive", "--no-auth-cache"]
+
+    for key in kwargs:
+        args.extend(["--{}".format(key), str(kwargs[key])])
+    process = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+    out, err = process.communicate()
+    return SVNErrorParser(err)
 
 def get_cred():
     import warnings
@@ -186,8 +219,11 @@ def create_repository(repository_name,
     else:
         if os.name == "nt":
             raise OSError("This feature is unavailable on Windows based systems.")
-        elif sys.startswith("2"):
-            raise EnvironmentError("This feature is not meant for Python 2.x. Use Python 3.4+.")
+        elif sys.version.startswith("2"):
+            msg = (
+                    "This feature is not meant for "
+                    "Python 2.x. Use Python 3.4+.")
+            raise EnvironmentError(msg)
         else:
             # If the repository doesn't exist, and if this is called from a Linux host,
             # then create the repository.
@@ -219,29 +255,38 @@ def commit(checkout_path, username, password, file_name, commit_message):
         os.chdir(start_dir)
         return SVNErrorParser(err)
 
-def check_if_folder_exists(link, user, password):
-    """Checks if an SVN folder exists.
-
+def item_exists(link, user, password):
+    """Checks if given link is reachable/exists.
     returns :bool:
     """
-    args = ["svn", "list", "--username", user, "--password", password, link,
+    args = ["svn", "info", "--username", user, "--password", password, link,
             "--depth", "empty", "--non-interactive", "--no-auth-cache"]
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process.communicate()
     errs = SVNErrorParser(err)
     return (errs.item_exists == True)
 
-def create_folder(link, user, password, commit_message=None, validate=False):
+def create_folder(link, user, password, commit_message=None, parents=False, validate=False):
     """Creates an SVN folder."""
     if commit_message is None:
         commit_message = "Creating {}".format(link)
-    args = ["svn", "mkdir", "-m", commit_message,
-            "--username", user, "--password", password,
-            link, "--non-interactive", "--no-auth-cache"]
+    if not parents:
+        args = ["svn", "mkdir", "-m", commit_message,
+                link,
+                "--username", user, 
+                "--password", password,
+                "--non-interactive", "--no-auth-cache"]
+    else:
+        args = ["svn", "mkdir", "--parents", 
+                "-m", commit_message,
+                link, 
+                "--username", user,
+                "--password", password,
+                "--non-interactive", "--no-auth-cache"]
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process.communicate()
     if validate:
-        if not check_if_folder_exists(link, user, password):
+        if not item_exists(link, user, password):
             raise exceptions.SVNFolderCreationError("Failed creating {}.".format(link))
     return out.decode("ascii").strip(), SVNErrorParser(err)
 
@@ -280,7 +325,7 @@ def clone_template_folders(link, template, user, password, commit_message=None, 
     subfolders = ["{}/{}".format(link, folder)
                 for folder in subfolders if (os.path.splitext(folder)[1] == "")]
     for folder in subfolders:
-        if not check_if_folder_exists(folder, user, password):
+        if not item_exists(folder, user, password):
             create_folder(folder, user, password,
                         commit_message=commit_message, validate=validate)
 
