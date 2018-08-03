@@ -1,5 +1,6 @@
-from .exceptions import SVNException
 import sys
+import os
+from .exceptions import SVNException
 class SVNErrorParser:
     """Class to manage the errors from svn.
     """

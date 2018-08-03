@@ -44,7 +44,8 @@ def get_info(url, username, password):
                         stderr=subprocess.PIPE,
                         stdout=subprocess.PIPE)
     out, err = process.communicate()
-    out = out.decode("ascii").split("\r\n")
+    out = out.decode("ascii")
+    out = out.split("\r\n" if "\r\n" in out else "\n")
     err = SVNErrorParser(err)
     info_dict = {}
     if err.item_exists:
@@ -78,7 +79,8 @@ def list_folder(url, username, password, **kwargs):
     query_process = subprocess.Popen(args, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
     out, err = query_process.communicate()
-    out = out.decode("utf-8").split("\r\n")
+    out = out.decode("utf-8")
+    out = out.split("\r\n" if "\r\n" in out else "\n")
     errors = SVNErrorParser(err)
     return out, errors
 
