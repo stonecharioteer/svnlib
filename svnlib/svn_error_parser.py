@@ -14,7 +14,7 @@ class SVNErrorParser:
         """
         if not isinstance(errs, bytes):
             raise ValueError("Expected bytes, not {}".format(type(errs)))
-        err_list = errs.decode("ascii").strip()
+        err_list = errs.decode("latin-1").strip()
         if err_list == "":
             err_list = []
         else:
