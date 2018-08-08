@@ -5,6 +5,7 @@ def check_for_svn():
     and if it is available in the PATH.
     """
     import distutils
+    import distutils.spawn
     import os
     if os.name == "nt":
         executable = "svn.exe"
