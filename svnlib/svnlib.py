@@ -44,7 +44,7 @@ def get_info(url, username, password):
                         stderr=subprocess.PIPE,
                         stdout=subprocess.PIPE)
     out, err = process.communicate()
-    out = out.decode("ascii")
+    out = out.decode("latin-1")
     out = out.split("\r\n" if "\r\n" in out else "\n")
     err = SVNErrorParser(err)
     info_dict = {}
@@ -290,7 +290,7 @@ def create_folder(link, user, password, commit_message=None, parents=False, vali
     if validate:
         if not item_exists(link, user, password):
             raise exceptions.SVNFolderCreationError("Failed creating {}.".format(link))
-    return out.decode("ascii").strip(), SVNErrorParser(err)
+    return out.decode("latin-1").strip(), SVNErrorParser(err)
 
 def delete_folder(link, user, password, commit_message=None):
     """Creates an SVN folder."""
@@ -302,7 +302,7 @@ def delete_folder(link, user, password, commit_message=None):
     process = subprocess.Popen(
         args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process.communicate()
-    return out.decode("ascii").strip(), SVNErrorParser(err)
+    return out.decode("latin-1").strip(), SVNErrorParser(err)
 
 def get_templates_folder():
     """Returns the link to the current FolderTemplates
@@ -346,5 +346,5 @@ def move_folder(link, new_link, user, password, commit_message=None, validate=Fa
     ]
     process = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     out, err = process.communicate()
-    return out.decode("ascii").strip(), SVNErrorParser(err)
+    return out.decode("latin-1").strip(), SVNErrorParser(err)
 
